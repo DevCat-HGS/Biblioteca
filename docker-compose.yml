@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Servicio de MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: biblioteca-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - biblioteca-network
+    restart: unless-stopped
+
+  # Servicio de la aplicación
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: biblioteca-app
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/bibliotecaPersonal
+    depends_on:
+      - mongodb
+    networks:
+      - biblioteca-network
+    restart: unless-stopped
+    volumes:
+      - ./backend:/usr/src/app
+      - ./frontend:/usr/src/app/frontend
+      - /usr/src/app/node_modules
+
+networks:
+  biblioteca-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
